@@ -1,0 +1,917 @@
+ /$$$$$$$  /$$$$$$$   /$$$$$$     /$$$$$ /$$$$$$$$  /$$$$$$  /$$$$$$$$
+| $$__  $$| $$__  $$ /$$__  $$   |__  $$| $$_____/ /$$__  $$|__  $$__/
+| $$  \ $$| $$  \ $$| $$  \ $$      | $$| $$      | $$  \__/   | $$   
+| $$$$$$$/| $$$$$$$/| $$  | $$      | $$| $$$$$   | $$         | $$   
+| $$____/ | $$__  $$| $$  | $$ /$$  | $$| $$__/   | $$         | $$   
+| $$      | $$  \ $$| $$  | $$| $$  | $$| $$      | $$    $$   | $$   
+| $$      | $$  | $$|  $$$$$$/|  $$$$$$/| $$$$$$$$|  $$$$$$/   | $$   
+|__/      |__/  |__/ \______/  \______/ |________/ \______/    |__/
+
+STAGE 1. HELLO WORLD
+*********************
+устанавливаем последнюю ноду
+npm init -y
+npm i connect-mongo dotenv ejs express express-ejs-layouts express-session method-override mongoose passport passport-google-oauth20
+npm i nodemon --save-dev
+создаем 
+    .gitignore
+    .env
+Обновляем package.json
+    "main": "app.js",
+    "start": "nodemon app.js"
+Структура проекта: // (*) - созданная папка или созданный и заполненный файл
+/NDNB
+    /node_modules
+        ...
+    /views (*)
+        /layouts(*)
+            main.ejs(*)
+        index.ejs(*)
+    .gitignore
+    app.js(*)
+    package-lock.json
+    package.json
+СОДЕРЖИМОЕ ФАЙЛОВ:
+app.js
+    require('dotenv').config();
+    const express = require('express');
+    const expressLayouts = require('express-ejs-layouts');
+
+    const app = express();
+    const port = 5000 || process.env.PORT
+
+    //Managing url requests
+    app.use(express.urlencoded({extended: true}));
+    app.use(express.json());
+
+    //Static Files
+    app.use(express.static('public'));
+
+    //Templating Engine
+    app.use(expressLayouts);
+    app.set('layout', './layouts/main');
+    app.set('view engine', 'ejs');
+
+    //Routing
+    app.get('/', function(req,res){
+        res.render('index');
+    });
+
+    //App Start
+    app.listen(port, () => {
+        console.log(`App listening on port ${port}`)
+    });
+index.ejs
+    Hello wolrd
+main.ejs //создан с помощью болванки, поменялось только body
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+    </head>
+    <body>
+        <%- body %>
+    </body>
+    </html>
+
+STAGE 2. MOVE TO MVC
+*********************
+Добавлеяем папки и файлы
+/NDNB
+    /server
+        /controllers
+            mainController.js
+        /routes
+            index.js
+Из app.js удаляем app.get('/',...
+Вместо этого в app.js
+    app.use('/', require('./server/routes/index'));
+Внутри /server/routes/index.js
+    const express = require('express');
+    const router = express.Router();
+    const mainController = require('../controllers/mainController');
+
+    router.get('/',mainController.homepage);
+
+    module.exports = router;
+Внутри /server/controllers/mainController.js
+    exports.homepage = async (req,res) => {
+        res.render('index');
+    }
+   
+STAGE 3. ADD ONE MORE PAGE (ABOUT) 
+**********************************
+Добавляем маршрут (\server\routes\index.js)
+    router.get('/about', mainController.about);
+Создаем файл с вьюшкой \views\about.ejs
+    <h1>About</h1>
+Добавляем функцию в контроллер /server/controllers/mainController.js
+    exports.about = async (req,res) => {
+    res.render('about');
+    }
+
+STAGE 4. ADD CCS AND Co
+***********************
+Добавляем CDN бустрап с сайта getbootstrap.com. Для этого добавляем в /views/layouts/main.ejs две строки (линк в хэд и скрипт в бади)
+    <head>
+        ...
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    </head>
+    <body>
+        ...
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    </body>
+ДОБАВЛЯЕМ ЛОКАЛЬНЫЕ СТИЛИ. 
+Создаем папки файлы:
+    /NDNB
+        /public (*)
+            /css  (*)
+                main.css (*)
+            /img (*)
+Добавляем линк в хэд main.ejs
+    <head>
+        ...
+        <link rel="stylesheet" href="/css/main.css">
+    </head>
+Меняем цвет фона в файле /public/css/main.css
+    body {
+        background-color: bisque;
+    }
+ДОБАВЛЯЕМ ФУТЕР И ХЭДЕР В ГЛАВНЫЙ LAYOUT
+Создаем папки файлы:
+    /NDNB
+        /views
+            /partials (*)
+                footer.ejs (*)
+                header.ejs (*)
+Обновляем бади в /views/layouts/main.ejs
+    <body>
+        <%- include('../partials/header.ejs') %>
+        <%- body %>
+        <%- include('../partials/footer.ejs') %>
+        ...
+    </body>
+Из https://getbootstrap.com/docs/5.3/examples/headers/ правой кнопкой копируем нужный хэдер и вставляем в header.ejs
+<div class="container-fluid"> (чтобы на всю ширину экрана)
+...
+<a href="/" class="d-inline-flex link-body-emphasis text-primary text-decoration-none fw-bold fs-2">
+    N.D.N.B.
+</a>
+Аналогично делаем с футером
+
+STAGE 5. ORGANIZE VIEWS, ROUTES, CONTROLLERS TO MATCH SITE LOGIC
+****************************************************************
+Исходя из логики:
+- страртовая страница (homepage)
+    - хэдер
+        - логотип хоум фичи фак эбаут регистрация логин
+    - бади (лендинговое бла бла бла)
+    - футер (копирайт + дубляж меню хэдера хоум фичи фак эбаут)
+- страница логин (если на страртовой жмем логин)
+  (на ней происходит авторизация через гугл)
+- страница дашборд (на нее попадаем после гугл авторизации)
+    - свой собственный хэдер ( логотип, строка поиска, логаут)
+    - отображение текущего списка ноутс
+    - кнопка добавить ноут
+    **
+    при нажатии на "добавить ноут" переходит на страницу создания ноут
+    на каждый отдельный ноут можно нажать и откроется окно редактирования с кнопкой АПДЕЙТ и ДЕЛИТ
+- страница 404
+- страница Эбаут
+Создаем:
+три отдельные мастер страницы для 404 и тп, для хоумpage, для дашаборд
+/NDNB
+    /views
+        /layouts
+            dashboard.ejs
+            front-page.ejs
+            main.ejs
+Эти страницы бывают содержать общие "кирпичи". Создаем их.
+/NDNB
+    /views
+        /partials
+            footer.ejs
+            header.ejs
+            header_dashboard.ejs
+Боди страниц связанных с dashboard засовываем в отдельную папку
+/NDNB
+    /views
+        /dashboard
+            add.ejs
+            index.ejs
+            search.ejs
+            view-note.ejs
+Отдельно в "корень" засовываем страницу 404.ejs
+Выделяем логику обработки dashboard в отдельный контроллер и их становится два
+/NDNB
+    /server
+        /controllers
+            dashboardController
+            mainController
+Бьем маршруты на два файла по контроллерам (по идее можно оставить и в одном файле)
+/NDNB
+    /server
+        /routes
+            dashboard.js
+            index.js
+В app.js добавляем "обогащаение типов запросов" и пути к новым маршрутизаторам.
+    //Method override
+    const methodOverride = require("method-override");
+    app.use(methodOverride("_method")); //после urlencoded, json
+    
+    // Routes
+    app.use('/', require('./server/routes/auth'));
+    app.use('/', require('./server/routes/index'));
+    app.use('/', require('./server/routes/dashboard'));
+Заполняем 404.ejs
+    <div class="container-fluid container-fluid-custom py-md-5 mb-5">
+    <main>
+        <div class="row py-md-5 text-center justify-content-center">
+        <div class="col-md-12 col-lg-6 mb-6 mb-md-0">
+            <h1 class="display-2 fw-bold mb-4 position-relative home-title">
+            Page not found.
+            </h1>
+            <a href="/" class="btn btn-primary btn-lg">Explore Notes.</a>
+        </div>
+        </div>
+    </main>
+    </div>
+Подключаем обработку любого запроса по умолчанию на 404. (Если найдется подходящий марштрут - эту инструкция проигнорируется).
+Для этого внутри app.js добавляем:
+    // Handle 404
+    app.get('*', function(req, res) {
+        res.status(404).render('404');
+    })
+Далее двигаясь по вьюшкам делаем:
+вьюшка.ejs -> все запросы, которые она может породить -> роут -> контроллер -> 
+В маршрутизаторах прописываем какая функция какого контроллера будет обрабатывать тот или иной вид запроса
+В /server/controllers/dashboardController.js
+    /* Dashboard Routes */
+    router.get('/dashboard', dashboardController.dashboard);
+    router.get('/dashboard/item/:id', dashboardController.dashboardViewNote);
+    router.put('/dashboard/item/:id', dashboardController.dashboardUpdateNote);
+    router.delete('/dashboard/item-delete/:id', dashboardController.dashboardDeleteNote);
+    router.get('/dashboard/add', dashboardController.dashboardAddNote);
+    router.post('/dashboard/add', dashboardController.dashboardAddNoteSubmit);
+    router.get('/dashboard/search', dashboardController.dashboardSearch);
+    router.post('/dashboard/search', dashboardController.dashboardSearchSubmit);
+В /server/controllers/mainController.js
+    router.get('/', mainController.homepage);
+    router.get('/about', mainController.about);
+В самих контроллерах прописываем функции, не забывая указывать в каком мастер layout рэндерить, если было res.render
+В ТУТОРИАЛЕ ОН ДЕЛАЛ В ТАКОМ ПОРЯДКЕ:
+/views/layouts/front-page.ejs
+    //копипаст того, что было в main.ejs
+    //подправил класс для боди
+/server/controllers/mainController 
+    //поменял мастер layout
+    exports.homepage = async (req,res) => {
+        res.render('index',{layout: '../views/layouts/front-page'});
+    }
+Подправил внешний вид страницы /views/index.ejs
+    <div class="container-fluid container-fluid-custom py-md-5 mb-5">
+    <main>
+      <div class="row py-md-5 text-center justify-content-center">
+  
+        <div class="col-md-12 col-lg-6 mb-6 mb-md-0">
+          <h1 class="display-2 fw-bold mb-4 position-relative home-title">
+            Главная домашняя страница
+          </h1>
+          <p class="fs-4 mb-4">
+            Маленькое описание, что прикольное здесь можно делать
+          </p>
+          <a href="/auth/google" class="btn btn-primary btn-lg">ЗАХОДИ!</a>
+        </div>
+  
+      </div>
+    </main>
+    </div>
+Добавил обработку 404
+app.js
+    app.get('*', (req,res)=>{
+        res.status(404).render('404');
+    })
+/views/404.ejs // (*)(копипаст стилей их index.ejs)
+    <div class="container-fluid container-fluid-custom py-md-5 mb-5">
+        <main>
+        <div class="row py-md-5 text-center justify-content-center">
+    
+            <div class="col-md-12 col-lg-6 mb-6 mb-md-0">
+            <h1 class="display-2 fw-bold mb-4 position-relative home-title">
+                404
+            </h1>
+            <p class="fs-4 mb-4">
+                Такой страницы нет
+            </p>
+            <a href="/" class="btn btn-primary btn-lg">Вернуться на главную</a>
+            </div>
+    
+        </div>
+        </main>
+    </div>
+Потом стартовую заготовку для DASHBOARD
+app.js
+    app.use('/', require('./server/routes/dashboard'));
+/router/dashboard.js (*) (контрлцконтрлв из index.js)
+    const express = require('express');
+    const router = express.Router();
+    const dashboardController = require('../controllers/dashboardController');
+    router.get('/dashboard', dashboardController.dashboard);
+    module.exports = router;
+
+/controllers/dashboardController.js
+    exports.dashboard = async (req,res) => {
+        res.render('dashboard/index',{layout: '../views/layouts/dashboard'});
+    }
+/views/layouts/dashboard.ejs (копипаст из main.ejs, но с поменяным header)
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+        <link rel="stylesheet" href="/css/main.css">
+    </head>
+    <body>
+        <%- include('../partials/header_dashboard.ejs') %>
+        <%- body %>
+        <%- include('../partials/footer.ejs') %>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    </body>
+    </html>
+/views/partials/header_dashboard.ejs(*) (копипаст с обычного header, ссылки поменяли на форму поиска? кнопочка logout)
+      <form class="nav col-12 col-md-auto flex-fill mb-2 justify-content-center mb-md-0" role="search" method="POST" action="/dashboard/search">
+        <input type="search" name="searchTerm" class="form-control border-primary" placeholder="Search..." aria-label="Search">
+      </form>
+     
+    <div class="col-md-3 text-end">
+      <a href="/logout" type="button" class="btn btn-outline-primary">Logout</a>
+    </div>
+
+/views/dashboard(*)/index.ejs(*)
+    <h1>Dashboard</h1>
+
+STAGE 6. DB AND AUTHORIZATION
+*****************************
+ПОДКЛЮЧЕНИЕ К БД
+.env
+    MONGODB_URI = mongodb://localhost:27017/hello
+    //Будет создана БД с именем hello
+/server/config(*)/db.js(*)
+    const mongoose = require('mongoose');
+    mongoose.set('strictQuery', false);
+    const connectDB = async()=>{
+        try {
+            const conn = await mongoose.connect(process.env.MONGODB_URI);
+            console.log(`Database Connected: ${conn.connection.host}`);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+    module.exports = connectDB;
+app.js
+    const connectDB = require('./server/config/db');
+    ...
+    //Connect to DataBase
+    connectDB();
+АВТОРИЗАЦИЯ
+app.js
+    const passport = require('passport');
+    const MongoStore = require('connect-mongo');
+
+    app.use(passport.initialize());
+
+    app.use('/',require('./server/routes/auth'));
+
+/server/routes/auth.js(*)
+https://console.cloud.google.com/
+CREATE PROJECT NDNB
+Select project -> Cloud Overview -> Dashboard -> goto API overview -> Credentials -> Create credentials -> 0Auth client ID -> Configure consent screen -> external -> Create -> имя проекта, 2 раза имэйл -> некст, некст, некст
+Повторно Credentials -> Create credentials -> Web application -> Authorized JavaScript origins -> http://localhost:5000/ -> Authorized redirect URIs -> http://localhost:5000/google/callback -> CREATE
+ПО ИТОГУ ПОЛУЧАЕМ
+Client ID
+Client Secret.
+Прописываем их через .env в server/routes/auth.js
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: process.env.GOOGLE_CALLBACK_URI
+Далее с сайта https://www.passportjs.org/packages/passport-google-oauth20/ продолжаем копипаст следующего окошка и приводим auth.js к виду:
+const express = require('express');
+const router = express.Router();
+const passport = require('passport');
+//Кописат с https://www.passportjs.org/packages/passport-google-oauth20/
+    const GoogleStrategy = require('passport-google-oauth20').Strategy;
+
+    passport.use(new GoogleStrategy({
+        clientID: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        callbackURL: process.env.GOOGLE_CALLBACK_URI
+    },
+    function(accessToken, refreshToken, profile, cb) {
+        console.log(profile);
+    }
+    ));
+
+    router.get('/auth/google',
+    passport.authenticate('google', { scope: ['email','profile'] }));
+
+    router.get('/google/callback', 
+    passport.authenticate('google', { 
+        failureRedirect: '/login-failure',
+        successRedirect: '/dashboard' }),
+        
+    function(req, res) {
+        // Successful authentication, redirect home.
+        res.redirect('/');
+    });
+    router.get('/login-failure', (req,res)=>{
+        res.send('something went wrong')
+    })
+
+    module.exports = router;
+**** НА ЭТОМ ЭТАПЕ ********************
+сессия записывается в БД
+инфо о пользователе выводится в консоль
+***************************************
+Дальше с 1:30:00
+
+Окончание истории с логином
+app.js
+    const session = require('express-session');
+    
+    app.use(session({
+    secret: 'keyboard cat',
+    resave: false,
+    saveUninitialized: true,
+    store: MongoStore.create({
+    mongoUrl: process.env.MONGODB_URI
+    }),
+    //cookie: { maxAge: new Date ( Date.now() + (3600000) ) } 
+    // Date.now() - 30 * 24 * 60 * 60 * 1000
+    }));
+
+    app.use(passport.session());
+
+СОЗДАНИЕ МОДЕЛИ ПОЛЬЗОВАТЕЛЯ
+/server/models(*)/User.js(*)
+    const mongoose = require('mongoose');
+
+    const Schema = mongoose.Schema;
+    const UserSchema = new Schema({
+        goodleId: {
+            type: String,
+            required: true
+        },
+        displayName: {
+            type: String,
+            required: true
+        },
+        firstName: {
+            type: String,
+            required: true
+        },
+        lastName: {
+            type: String,
+            required: true
+        },
+        profileImage: {
+            type: String,
+            required: true
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now
+        },
+    });
+
+    module.exports = mongoose.model('User', UserSchema)
+    //Именно так будет называться коллекция в БД
+
+СОХРАНЕНИЕ ДАННЫХ О ПОЛЬЗОВАТЕЛЕ ПОСЛЕ РЕГИСТРАЦИИ
+ИЗВЛЕЧЕНИЕ ПОЛЬЗОВАТЕЛЬСКИХ ДАННЫХ ИЗ СЕССИИ
+/server/routes/auth.js
+    const User = require('../models/User.js');
+
+    //Переписываем функцию function(accessToken, refreshToken, profile, cb)
+    async function(accessToken, refreshToken, profile, done) {
+        const newUser = {
+        goodleId: profile.id,
+        displayName: profile.displayName,
+        firstName: profile.name.givenName,
+        lastName: profile.name.familyName,
+        profileImage: profile.photos[0].value,
+        }
+
+        try {
+        let user = await User.findOne( {goodleId: profile.id} );
+        if (user) {
+            done(null,user)
+        } else {
+            user = await User.create(newUser);
+            done(null,user);      
+        }
+        } catch (error) {
+        console.log(error)
+        }
+    }
+
+    //Сохранение данных о пользователе после успешной авторизации
+    passport.serializeUser( (user,done)=>{
+        done(null,user.id);
+    });
+
+    //Извлечение данных о пользователе
+    passport.deserializeUser( (id,done)=>{
+    User.FindById(id, (err,user) =>{
+        done(err,user);
+    })
+    })
+
+ЛОГАУТ = УНИЧТОЖЕНИЕ СЕСССИИ + MIDDLEWARE CHECK AUTH
+/server/routes/auth.js
+    //LOGOUT = уничтожение сессии пользователя
+    router.get('/logout', (req,res)=>{
+    req.session.destroy(error =>{
+        if(error) {
+        console.log(error);
+        res.send('Error loggin out');
+        } else {
+        res.redirect('/');
+        }
+    })
+    });
+/server/middleware(*)/checkAuth.js(*)
+    exports.isLoggedIn = function (req, res, next) {
+        if(req.user) {
+        next();
+        } else {
+        return res.status(401).send('Access Denied');
+        }
+    }
+Обновляем маршрутизацию защищенных страниц
+/server/routes/dashboard.js
+    const { isLoggedIn } = require('../middleware/checkAuth'); //(*)
+    router.get('/dashboard', isLoggedIn, dashboardController.dashboard);//(#)
+
+STAGE 7. DISPLAY NOTES
+**********************
+/server/models/Note.js(*)
+    const mongoose = require('mongoose');
+    const Schema = mongoose.Schema;
+    const NoteSchema = new Schema({
+        user: {
+            type: Schema.ObjectId,
+            ref: 'User'
+        },
+        title: {
+            type: String,
+            required: true
+        },
+        body: {
+            type: String,
+            required: true
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now()
+        },
+        updatedAt: {
+            type: Date,
+            default: Date.now()
+        },
+    });
+    module.exports = mongoose.model('Note', NoteSchema);
+/views/dashboard/index.ejs
+    <div class="container-fluid container-fluid-custom pb-5 mb-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>Hello, <%= userName %></h1>
+        </div>
+        <div class="col text-end">
+            <a href="/dashboard/add" class="btn btn-primary"> + Note</a>
+        </div>
+    </div>
+    <div class="row">
+        <% if(notes.length > 0) {for(var i = 0; i < notes.length;i++){%>
+            <div class="card border-primary" style = "min-height: 210px">
+            <a href = "/dashboard/item/<%=notes[i]._id%>" class="card-body text-decoration-none">
+                <h5 class = "card-title"> <%=notes[i].title %> </h5>
+                <p class = "card-text"><%=notes[i].body %> </p>          
+            </a>
+            </div>
+
+        <%}}  else {%>
+            <h1>Записей пока нет</h1>
+        <% } %>
+    </div>
+    </div>
+/server/controllers/dashboardController.js
+    const Note = require('../models/Note');
+    const mongoose = require('mongoose');
+    exports.dashboard = async (req,res) => {
+        try {
+            const notes = await Note.find({});
+            res.render('dashboard/index',{
+                userName: req.user.firstName,
+                notes,
+                layout: '../views/layouts/dashboard'});
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+STAGE 8. VIEW NOTE
+******************
+Внутри /views/dashboard/index.ejs
+каждая ноут обернута в ссылочку:
+ <a href = "/dashboard/item/<%=notes[i]._id%>" class="card-body text-decoration-none">
+ Идя от нее двигаемся по логике url -> route -> controller -> рендер вьюшки или редирект
+Добавляем маршрут в /server/routes/dashboard.js
+    router.get('/dashboard/item/:id', isLoggedIn, dashboardController.dashboardViewNote);
+Добавляем нужный метод к контроллер /server/controllers/dashboardController.js
+    exports.dashboardViewNote = async(req,res) =>{
+        const note = await Note.findById({_id: req.params.id})
+        .where({user: req.user.id}).lean(); //Нужно, чтобы чужой не могу посмотреть
+
+        if(note) {
+            res.render('dashboard/view-note',{
+                noteID: req.params.id,
+                note,
+                layout: '../views/layouts/dashboard'
+            });
+        } else {
+            res.send("Something went wrong.")
+        }
+    }
+Создаем новую вьюшку /views/dashboard/view-note.ejs(*)
+    <div class="container-fluid container-fluid-custom pb-5 md 5">
+
+        <div class="row mb-4">
+            <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
+                <li class="breadcrumb-item active"><%= note.title %></li>
+                </ol>
+            </nav>
+            <div class="col d-flex justify-content-between align-items-center">
+                <h1 class="h3"><%= note.title %></h1>
+                <p><%= note.body %></p>
+                <button type="button" class="btn btn-danger me-2" data-bs-toggle="modal" id="deleteButton" data-bs-target="#deleteModal">
+                Delete
+                </button>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- https://getbootstrap.com/docs/5.3/components/modal/#how-it-works -->
+    <div class="modal fade" tabindex="-1" role="dialog" id="deleteModal">
+        <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h5 class="modal-title">You are about to delete a note</h5>
+            <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            </div>
+            <div class="modal-body">
+            <p>
+                This will delete your note <b class="fw-bold"><%= note.title %></b><br/>
+                Are you sure?
+            </p>
+            </div>
+            <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        
+            <form action="/dashboard/item-delete/<%= noteID %>?_method=DELETE" method="POST" class="position-relative">
+                <button type="submit" class="btn btn-primary">Delete Note</button>
+            </form>
+            
+            </div>
+        </div>
+        </div>
+    </div>
+STAGE 9. UPDATE NOTE
+********************
+/views/dashboard/view-note.ejs
+Добавляем форму для просмотра и апдейта note
+      <form action="/dashboard/item/<%= noteID %>?_method=PUT" method="POST" class="position-relative">
+        <div class="form-group mb-4 position-absolute" style="left:1px; top:1px; right: 1px;">
+          <input type="text" class="form-control fw-bold border-0 fs-4" id="title" name="title" value="<%= note.title %>" placeholder="Title">
+        </div>
+    
+        <div class="form-group mb-4">
+          <textarea class="form-control pt-5 fs-4" id="body" name="body" placeholder="Take a note..." rows="12"><%= note.body %></textarea>
+        </div>
+    
+        <div class="form-group">
+          <button type="submit" class="btn btn-primary btn-lg">Update</button>
+        </div>
+    
+      </form>
+Так как нужен запрос PUT, а в браузере только GET и POST - обогащаем при помощи method-override
+app.js
+    const methodOverride = require("method-override");
+    app.use(methodOverride("_method"));
+Прописываем маршрут для запроса:
+/server/routes/dashboard.js
+    router.put('/dashboard/item/:id', isLoggedIn, dashboardController.dashboardUpdateNote);
+Добавляем метод .dashboardUpdateNote в контроллере dashboardController
+/server/controllers/dashboardController.js
+    exports.dashboardUpdateNote = async (req, res) => {
+    try {
+      await Note.findOneAndUpdate(
+        { _id: req.params.id },
+        { title: req.body.title, body: req.body.body, updatedAt: Date.now() }
+      ).where({ user: req.user.id });
+      res.redirect("/dashboard");
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+STAGE 10. DELETE NOTE
+*********************
+Кнопка delete уже есть (метод вызывается через модальное окно) в /views/dashboard/view-note.ejs
+Добавляем маршрут
+/server/routes/dashboard.js
+    router.delete('/dashboard/item-delete/:id', isLoggedIn, dashboardController.dashboardDeleteNote);
+Добавляем метод в контроллер
+/server/controllers/dashboardController.js
+    exports.dashboardDeleteNote = async (req, res) => {
+    try {
+        await Note.deleteOne({ _id: req.params.id }).where({ user: req.user.id });
+        res.redirect("/dashboard");
+    } catch (error) {
+        console.log(error);
+    }
+    };
+
+STAGE 11. ADD NOTE
+******************
+В /views/dashboard/index.ejs уже есть кнопка <a href="/dashboard/add" class="btn btn-primary"> + Note</a>
+Поэтому начинаем с марштрута
+/server/routes/dashboard.js
+    router.get('/dashboard/add', isLoggedIn, dashboardController.dashboardAddNote);
+Добавляем метод в контроллер
+/server/controllers/dashboardController.js
+    exports.dashboardAddNote = async (req, res) => {
+    res.render("dashboard/add", {
+      layout: "../views/layouts/dashboard",
+    });
+  };
+(пока что просто "директим" на вьюшку, где будет происходить все богатство)
+Добавляем вьюшку с богатством заполнения
+/views/dashboard/add.ejs(*)
+    <div class="container-fluid container-fluid-custom pb-5 mb-5">
+
+    <div class="row mb-4">
+        <div class="col">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
+            <li class="breadcrumb-item active">Add Note</li>
+            </ol>
+        </nav>
+        <div class="col d-flex justify-content-between align-items-center">
+            <h1 class="h3">Add Note</h1>
+        </div>
+        </div>
+    </div>
+
+
+    <form action="/dashboard/add" method="POST" class="position-relative">
+        <div class="form-group mb-4 position-absolute" style="left:1px; top:1px; right: 1px;">
+        <input type="text" class="form-control fw-bold border-0 fs-4" id="title" name="title" placeholder="Title" required>
+        </div>
+
+        <div class="form-group mb-4">
+        <textarea required class="form-control pt-5 fs-4" id="body" name="body" placeholder="Take a note..." rows="12"></textarea>
+        </div>
+
+        <div class="form-group">
+        <button type="submit" class="btn btn-primary btn-lg">+ Add Note</button>
+        </div>
+
+    </form>
+
+    </div>
+На новой вьюшке есть кнопка с /add POST. Обрабатываем теперь этот запрос.
+/server/routes/dashboard.js
+    router.post('/dashboard/add', isLoggedIn, dashboardController.dashboardAddNoteSubmit);
+/server/controllers/dashboardController.js
+    exports.dashboardAddNoteSubmit = async (req, res) => {
+    try {
+        req.body.user = req.user.id;
+        await Note.create(req.body);
+        res.redirect("/dashboard");
+    } catch (error) {
+        console.log(error);
+    }
+    };
+
+STAGE 12. SEARCH NOTES
+**********************
+В /views/partials/header_dashboard.ejs уже есть форма с URL запросом для search
+    <form class="nav col-12 col-md-auto flex-fill mb-2 justify-content-center mb-md-0" role="search" method="POST" action="/dashboard/search">
+        <input type="search" name="searchTerm" class="form-control border-primary" placeholder="Search..." aria-label="Search">
+    </form>
+Под нее добавляем маршут - метод в контроллере
+/server/routes/dashboard.js
+    router.post('/dashboard/search', isLoggedIn, dashboardController.dashboardSearchSubmit);
+/server/controllers/dashboardController.js
+    exports.dashboardSearchSubmit = async (req, res) => {
+    try {
+        let searchTerm = req.body.searchTerm;
+        const searchNoSpecialChars = searchTerm.replace(/[^a-zA-Z0-9 ]/g, "");
+
+        const searchResults = await Note.find({
+        $or: [
+            { title: { $regex: new RegExp(searchNoSpecialChars, "i") } },
+            { body: { $regex: new RegExp(searchNoSpecialChars, "i") } },
+        ],
+        }).where({ user: req.user.id });
+
+        res.render("dashboard/search", {
+        searchResults,
+        layout: "../views/layouts/dashboard",
+        });
+    } catch (error) {
+        console.log(error);
+    }
+    };
+Создаем новую вьюшку для рендеринга
+/views/dashboard/search.ejs(*)
+    <div class="container-fluid container-fluid-custom pb-5 mb-5">
+
+    <div class="row">
+        <% if(searchResults != '') { %>
+        <% searchResults.forEach(function (note, index) { %>
+            
+            <a href="/dashboard/item/<%= note._id %>">
+            <h4><%= note.title %></h4>
+            </a>
+
+        <% }) %>
+        <% } else { %>
+        <p>No items found.</p>
+        <% } %>
+
+    </div>
+
+    </div>
+
+ /$$$$$$$  /$$$$$$$$ /$$$$$$$  /$$        /$$$$$$  /$$     /$$
+| $$__  $$| $$_____/| $$__  $$| $$       /$$__  $$|  $$   /$$/
+| $$  \ $$| $$      | $$  \ $$| $$      | $$  \ $$ \  $$ /$$/ 
+| $$  | $$| $$$$$   | $$$$$$$/| $$      | $$  | $$  \  $$$$/  
+| $$  | $$| $$__/   | $$____/ | $$      | $$  | $$   \  $$/   
+| $$  | $$| $$      | $$      | $$      | $$  | $$    | $$    
+| $$$$$$$/| $$$$$$$$| $$      | $$$$$$$$|  $$$$$$/    | $$    
+|_______/ |________/|__/      |________/ \______/     |__/ 
+https://www.youtube.com/watch?v=Ke6prIovMSU
+https://www.youtube.com/watch?v=-oTdaFDvLo4
+
+https://hevodata.com/blog/install-nodejs-with-mongodb-on-ubuntu/
+
+
+
+STAGE 1. UBUNTU via SSH
+***********************
+Покупаем на Спринтхост сервер с дистрибутивом Ubuntu 20.04 LTS "Focal Fossa" [x64]
+При покупке добавляем SSH ключ сгенерированный с помощью Putty и выбираем "аутентификация по ключу"
+На почту приходит ip и логин/пароль
+Сначала коннектимся с помощью putty и вводим команду passwd (с её помощью меняем пароль на непустой)
+После смены пароля можно коннектится через Windows Power Shell с помощью команды shh root@***.***.***.*** (звездами - айпи сервера)
+
+
+STAGE 2. LIBRARIES
+******************
+Устанавливаем нужные библиотеки
+
+Обновите состояние пакетов:
+sudo apt update
+
+Установите Curl:
+sudo apt install curl
+
+Установите NVM (Node Version Manager):
+curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
+source ~/.profile 
+* - тут две команды. Может ругаться на вторую. Если ругается  - предварительно создаем файл .profile с помощью команды touch
+
+Установите Node
+# Установить последную версию
+nvm install node
+# Установить конкретную версию
+nvm install 14.17.3
+nvm use 14.17.3
+# Установить версию по умолчанию
+nvm alias default 14.17.3
+# Проверить активную версию 
+node -v
+

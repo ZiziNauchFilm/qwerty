@@ -1,0 +1,29 @@
+Зачем dotenv
+Чтобы хранить в .env явки, пароли и тд
+
+
+Как добавить кнопку во вьюшку:
+    <a href="/auth/google" class="btn btn-primary btn-lg">ЗАХОДИ!</a>
+
+
+Как сделать форму поиска?
+    <form class="nav col-12 col-md-auto flex-fill mb-2 justify-content-center mb-md-0" role="search" method="POST" action="/dashboard/search">
+    <input type="search" name="searchTerm" class="form-control border-primary" placeholder="Search..." aria-label="Search">
+    </form>
+
+
+Как сделать элемент (Note) кликабельным?
+    <a href = "/dashboard/item<%=notes[i]._id%>" class="card-body text-decoration-none">
+        <h5 class = "card-title"> <%=notes[i].title %> </h5>
+        <p class = "card-text"><%=notes[i].body %> </p>    
+    </a>
+
+
+Как привязать кнопку к появлению модального окна?
+    <button type="button" class="btn btn-danger me-2" data-bs-toggle="modal" id="deleteButton" data-bs-target="#deleteModal">
+
+Как кнопка знает, какой метод вызвать? Она обернута в форму (пример из view-note.ejs)
+    <form action="/dashboard/item-delete/<%= noteID %>?_method=DELETE" method="POST" class="position-relative">
+    <button type="submit" class="btn btn-primary">Delete Note</button>
+    </form>
+    
